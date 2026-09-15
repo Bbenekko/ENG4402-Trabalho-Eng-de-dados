@@ -1,0 +1,8 @@
+Data/Censo/dados/*.csv
+Data/INDEB/**/*.xlsx
+Data/INSE/*.xlsx
+
+# Arquivos temporários
+~$*.xlsx
+Thumbs.db
+.DS_Store
