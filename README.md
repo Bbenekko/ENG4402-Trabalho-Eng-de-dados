@@ -2,52 +2,65 @@
 
 Projeto de modelagem relacional e ETL sobre educação básica brasileira, cruzando três fontes do INEP/MEC: **Censo Escolar**, **IDEB** e **INSE** (ano de referência: 2023).
 
-## 📦 Como baixar os dados
-
-Os arquivos de dados brutos **não estão versionados neste repositório** (são grandes demais para o Git normal). Eles estão disponíveis na aba **Releases**, como anexos:
-
-👉 **[Baixar os dados brutos (Release "dados-2023")](https://github.com/Bbenekko/ENG4402-Trabalho-Eng-de-dados/releases/tag/dados-2023)**
-
-Na página da release, baixe os 5 arquivos:
-
-| Arquivo | Tamanho | Origem |
-|---|---|---|
-| `microdados_ed_basica_2023.csv` | ~200 MB | Censo Escolar da Educação Básica 2023 (INEP) |
-| `divulgacao_anos_iniciais_escolas_2025.xlsx` | ~53 MB | IDEB — Anos Iniciais do Ensino Fundamental (INEP) |
-| `divulgacao_anos_finais_escolas_2025.xlsx` | ~37 MB | IDEB — Anos Finais do Ensino Fundamental (INEP) |
-| `divulgacao_ensino_medio_escolas_2025.xlsx` | ~8,4 MB | IDEB — Ensino Médio (INEP) |
-| `INSE_2023_escolas.xlsx` | ~8,4 MB | Indicador de Nível Socioeconômico das Escolas (INEP) |
-
-## 📁 Onde colocar os arquivos baixados
-
-Depois de baixar, coloque cada arquivo na pasta correspondente do repositório, seguindo exatamente esta estrutura (essas pastas já existem no repo, só estão vazias por causa do `.gitignore`):
+## 📁 Estrutura do repositório
 
 ```
 Data/
 ├── Censo/
-│   └── dados/
-│       └── microdados_ed_basica_2023.csv          ← colocar aqui
+│   ├── dados/                         ← CSV bruto (não versionado, ver "Dados brutos" abaixo)
+│   ├── Anexos/                        ← dicionário de dados e questionários (versionado)
+│   └── leia-me/                       ← notas de uso do INEP (versionado)
 ├── INDEB/
-│   ├── divulgacao_anos_iniciais_escolas_2025/
-│   │   └── divulgacao_anos_iniciais_escolas_2025.xlsx   ← colocar aqui
-│   ├── divulgacao_anos_finais_escolas_2025/
-│   │   └── divulgacao_anos_finais_escolas_2025.xlsx     ← colocar aqui
-│   └── divulgacao_ensino_medio_escolas_2025/
-│       └── divulgacao_ensino_medio_escolas_2025.xlsx    ← colocar aqui
-└── INSE/
-    └── INSE_2023_escolas.xlsx                       ← colocar aqui
+│   ├── divulgacao_anos_iniciais_escolas_2025/   ← xlsx bruto (não versionado)
+│   ├── divulgacao_anos_finais_escolas_2025/     ← xlsx bruto (não versionado)
+│   └── divulgacao_ensino_medio_escolas_2025/    ← xlsx bruto (não versionado)
+├── INSE/
+│   ├── INSE_2023_escolas.xlsx         ← bruto (não versionado)
+│   └── INSE_2023_escolas.csv          ← conversão direta do xlsx, sem tratamento
+└── processed/                         ← ✅ dados já limpos, versionados neste repositório
+    ├── censo_escolar_2023_tratado.csv
+    ├── censo_escolar_2023_tratado.parquet
+    ├── ideb_ensino_medio_2023_tratado.csv
+    └── ideb_ensino_medio_2023_tratado.parquet
 ```
 
-> ⚠️ Essas 5 localizações estão listadas no `.gitignore` do projeto — ou seja, mesmo depois de colocar os arquivos aí, o Git **não vai tentar versioná-los de novo**. Isso é proposital: os dados ficam disponíveis pra todo mundo via Release, sem pesar o histórico do repositório.
+## ✅ Dados já tratados (estão neste repositório, não precisa baixar nada)
 
-## 🗂 O que já vem no repositório (não precisa baixar)
+A pasta `Data/processed/` já vem com os arquivos prontos, com colunas reduzidas ao escopo do trabalho (identificação, infraestrutura, matrículas/docentes/turmas do Ensino Médio) e tipos numéricos corrigidos:
 
-Documentação de apoio dos datasets, que já está commitada:
+| Arquivo | Descrição |
+|---|---|
+| `censo_escolar_2023_tratado.csv` / `.parquet` | Censo Escolar 2023, reduzido a 35 colunas relevantes ao objetivo do trabalho |
+| `ideb_ensino_medio_2023_tratado.csv` / `.parquet` | IDEB do Ensino Médio 2023, só colunas de identificação + indicadores de 2023 |
+
+Basta clonar o repositório e usar direto:
+
+```python
+import pandas as pd
+df_censo = pd.read_csv("Data/processed/censo_escolar_2023_tratado.csv", sep=";", encoding="utf-8")
+df_ideb = pd.read_csv("Data/processed/ideb_ensino_medio_2023_tratado.csv", sep=";", encoding="utf-8")
+```
+
+> O arquivo do **INSE** ainda não passou pela etapa de redução/tratamento de colunas — está disponível em `Data/INSE/INSE_2023_escolas.csv` (conversão direta do xlsx original, sem alterações).
+
+## 📥 Dados brutos (originais, sem nenhum tratamento)
+
+Os arquivos **brutos** de Censo Escolar e IDEB não estão versionados no repositório (o CSV do Censo sozinho tem ~200 MB, acima do limite de 100 MB do GitHub). Para obtê-los, baixe diretamente das fontes oficiais:
+
+| Fonte | Link |
+|---|---|
+| Censo Escolar da Educação Básica 2023 | https://dados.gov.br/dados/conjuntos-dados/inep-microdados-do-censo-escolar-da-educacao-basica |
+| IDEB (Escolas → 2023) | https://dados.gov.br/dados/conjuntos-dados/inep-indicador-educacional-da-educacao-basica-indice-de-desenvolvimento-da-educacao-basica-ideb |
+| INSE (Escolas → 2023) | https://dados.gov.br/dados/conjuntos-dados/inep-indicador-de-nivel-socioeconomico-inse |
+
+Depois de baixados, coloque cada arquivo na pasta correspondente indicada na estrutura acima (`Data/Censo/dados/`, `Data/INDEB/.../`), respeitando os nomes de arquivo originais — essas pastas já estão no `.gitignore`, então não serão versionadas de novo.
+
+## 🗂 Documentação de apoio (já vem no repositório)
 
 - `Data/Censo/Anexos/ANEXO I - Dicionário de Dados/` — dicionário de colunas do Censo Escolar
 - `Data/Censo/Anexos/ANEXO II - Questionários do Censo da Educação Básica/` — PDFs dos formulários (Aluno, Escola, Gestor Escolar, Profissional Escolar, Turma)
 - `Data/Censo/leia-me/Leia-me.pdf` — notas de uso do Censo Escolar
-- Aba **"Dicionário"** dentro do próprio `INSE_2023_escolas.xlsx` (depois de baixado) — explica as colunas do INSE
+- Aba **"Dicionário"** dentro do `INSE_2023_escolas.xlsx` — explica as colunas do INSE
 
 ## 🔑 Chaves de cruzamento entre as bases
 
